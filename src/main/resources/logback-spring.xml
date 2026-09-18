@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- ─────────────────────────────────────────────────────────────────────
+         PROPERTIES
+         ───────────────────────────────────────────────────────────────────── -->
+    <property name="LOG_PATTERN"
+              value="%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level [%logger{36}] - %msg%n"/>
+    <property name="LOG_DIR" value="logs"/>
+
+    <!-- ─────────────────────────────────────────────────────────────────────
+         CONSOLE APPENDER — Coloured, structured output for development
+         ───────────────────────────────────────────────────────────────────── -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} %highlight(%-5level) %cyan([%thread]) %yellow(%logger{30}) - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ─────────────────────────────────────────────────────────────────────
+         FILE APPENDER — Rolling daily log for persistence
+         ───────────────────────────────────────────────────────────────────── -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>${LOG_DIR}/sentinelpulse.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <fileNamePattern>${LOG_DIR}/sentinelpulse.%d{yyyy-MM-dd}.log</fileNamePattern>
+            <maxHistory>7</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${LOG_PATTERN}</pattern>
+        </encoder>
+    </appender>
+
+    <!-- ─────────────────────────────────────────────────────────────────────
+         LOGGERS
+         ───────────────────────────────────────────────────────────────────── -->
+
+    <!-- SentinelPulse application — DEBUG level for full trace during dev -->
+    <logger name="com.sentinelpulse" level="DEBUG" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </logger>
+
+    <!-- Spring framework — INFO to reduce noise -->
+    <logger name="org.springframework" level="INFO" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- Lettuce Redis client -->
+    <logger name="io.lettuce" level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- Netty (WebClient/WebFlux transport) -->
+    <logger name="io.netty" level="WARN" additivity="false">
+        <appender-ref ref="CONSOLE"/>
+    </logger>
+
+    <!-- ─────────────────────────────────────────────────────────────────────
+         ROOT
+         ───────────────────────────────────────────────────────────────────── -->
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+</configuration>

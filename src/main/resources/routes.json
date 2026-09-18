@@ -1,0 +1,22 @@
+[
+  {
+    "path": "/api/v1/orders",
+    "target_url": "http://localhost:9091",
+    "methods": ["GET", "POST"]
+  },
+  {
+    "path": "/api/v1/inventory",
+    "target_url": "http://localhost:9092",
+    "methods": ["GET", "POST"]
+  },
+  {
+    "path": "/api/v1/payments",
+    "target_url": "http://localhost:9093",
+    "methods": ["GET", "POST"]
+  },
+  {
+    "path": "/api/v1/notifications",
+    "target_url": "http://localhost:9094",
+    "methods": ["GET", "POST"]
+  }
+]
