@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+         https://maven.apache.org/xsd/maven-4.0.0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- ================================================================
+         Spring Boot Parent — manages all dependency versions automatically.
+         Changing this version changes the entire Spring ecosystem version.
+         ================================================================ -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.3.4</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.sentinelpulse</groupId>
+    <artifactId>sentinelpulse</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+    <name>SentinelPulse</name>
+    <description>
+        Edge Infrastructure Gateway — Rate Limiting, Transparent Proxy,
+        Webhook Dispatch Engine with Exponential Backoff and Dead-Letter Queue.
+    </description>
+
+    <properties>
+        <!--
+          IMPORTANT — Java version set to 21 (not 25) intentionally.
+
+          We compile to Java 21 bytecode (class file major version 65).
+          Spring Boot 3.3.4 uses ASM 9.5 internally, which can only scan
+          class files up to version 65 (Java 21). If we compiled to Java 25
+          (version 69), Spring's component scan would fail and NO beans
+          (@Service, @Component, @RestController) would be registered.
+
+          The runtime JVM is Java 25 — running Java 21 bytecode on Java 25 JVM
+          is fully supported and is normal practice.
+        -->
+        <java.version>21</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    </properties>
+
+    <dependencies>
+
+        <!-- ================================================================
+             CORE WEB — Embeds Tomcat, enables @RestController, servlet filters.
+             Everything HTTP-facing lives here.
+             ================================================================ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- ================================================================
+             WEBFLUX — Provides WebClient (non-blocking HTTP client).
+             Used by ProxyController (forward requests) and
+             WebhookDispatchService (POST to subscriber endpoints).
+             We do NOT use reactive controllers — only WebClient.
+             ================================================================ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-webflux</artifactId>
+        </dependency>
+
+        <!-- ================================================================
+             REDIS — Spring Data Redis with Lettuce async client.
+             Redis stores: API keys, rate-limit buckets, routes, subscribers,
+             idempotency hashes, and the dead-letter queue.
+             ================================================================ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-redis</artifactId>
+        </dependency>
+
+        <!-- ================================================================
+             ACTUATOR — Exposes /actuator/health and /actuator/prometheus.
+             Required for Prometheus scraping and container health checks.
+             ================================================================ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-actuator</artifactId>
+        </dependency>
+
+        <!-- ================================================================
+             MICROMETER PROMETHEUS — Bridges Micrometer metrics to Prometheus
+             exposition format. Without this, /actuator/prometheus returns 404.
+             ================================================================ -->
+        <dependency>
+            <groupId>io.micrometer</groupId>
+            <artifactId>micrometer-registry-prometheus</artifactId>
+        </dependency>
+
+        <!-- ================================================================
+             JACKSON — JSON serialization / deserialization.
+             Used for: reading routes.json, parsing event payloads,
+             serializing DLQ entries, and all REST response bodies.
+             ================================================================ -->
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+
+        <!-- ================================================================
+             TESTING — JUnit 5 + Mockito + Spring Test utilities.
+             Scope: test only — not included in the final JAR.
+             ================================================================ -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+    </dependencies>
+
+    <build>
+        <plugins>
+
+            <!-- ================================================================
+                 Spring Boot Maven Plugin — packages the project as a fat
+                 executable JAR (BOOT-INF layout) with all dependencies embedded.
+                 mainClass is set explicitly to avoid issues with classpath scanning
+                 on newer JVM versions during the repackage step.
+                 ================================================================ -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <mainClass>com.sentinelpulse.SentinelPulseApplication</mainClass>
+                </configuration>
+            </plugin>
+
+            <!-- ================================================================
+                 Maven Compiler Plugin — forces Java 21 source/target/release.
+                 This overrides the java.version property above with an explicit
+                 compiler instruction to ensure consistent bytecode output.
+                 ================================================================ -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <configuration>
+                    <release>21</release>
+                </configuration>
+            </plugin>
+
+            <!-- ================================================================
+                 Maven Surefire Plugin — runs JUnit 5 tests.
+                 argLine flags:
+                   -XX:+EnableDynamicAgentLoading  suppress Java 25 JVM agent warning
+                   -Dnet.bytebuddy.experimental=true  allow Mockito's Byte Buddy to
+                     operate on Java 25 JVM without crashing during test setup.
+                 ================================================================ -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <argLine>-XX:+EnableDynamicAgentLoading -Dnet.bytebuddy.experimental=true</argLine>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+
+</project>
