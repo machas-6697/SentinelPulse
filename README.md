@@ -6,7 +6,6 @@
 [![Maven](https://img.shields.io/badge/Build-Maven-C71A36.svg?logo=apachemaven&logoColor=white)](https://maven.apache.org/)
 [![Prometheus](https://img.shields.io/badge/Metrics-Prometheus-E6522C.svg?logo=prometheus&logoColor=white)](https://prometheus.io/)
 [![Grafana](https://img.shields.io/badge/Dashboards-Grafana-F46800.svg?logo=grafana&logoColor=white)](https://grafana.com/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A small API gateway written in Java/Spring Boot that sits in front of a set of backend services. It handles API-key authentication, per-client rate limiting, request proxying, and asynchronous webhook delivery with retries and a dead-letter queue. Built as a learning project to practice gateway patterns, Redis-backed state, and observability with Prometheus/Grafana.
 
